@@ -1,0 +1,361 @@
+/* =========================================
+   CYMOR SHOE STORE
+   STYLE.CSS (CINEMATIC VERSION 2.0)
+========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700;900&display=swap');
+
+/* =========================================
+   ROOT VARIABLES
+========================================= */
+
+:root{
+    --bg:#000000;
+    --text:#ffffff;
+    --cyan:#00ffff;
+    --gold:#ffd700;
+    --gray:#888888;
+}
+
+/* =========================================
+   RESET
+========================================= */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:'Poppins',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    overflow:hidden;
+    min-height:100vh;
+    position:relative;
+    transition:1s ease;
+}
+
+/* =========================================
+   BACKGROUND EFFECTS
+========================================= */
+
+body::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:
+    radial-gradient(circle at top left,
+        rgba(0,255,255,.12),
+        transparent 40%),
+
+    radial-gradient(circle at bottom right,
+        rgba(255,215,0,.12),
+        transparent 40%);
+    z-index:-2;
+}
+
+body::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background-image:
+        linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+
+    background-size:40px 40px;
+    z-index:-1;
+}
+
+/* =========================================
+   MAIN CONTAINER
+========================================= */
+
+.container{
+    width:100%;
+    height:100vh;
+    position:relative;
+    overflow:hidden;
+}
+
+/* =========================================
+   HERO SECTION
+========================================= */
+
+.hero{
+    width:100%;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    position:relative;
+}
+
+/* =========================================
+   TAGLINE
+========================================= */
+
+.tagline{
+    position:absolute;
+    top:40px;
+    color:var(--cyan);
+    letter-spacing:6px;
+    font-size:0.9rem;
+    text-shadow:
+        0 0 10px var(--cyan),
+        0 0 20px var(--cyan);
+    opacity:.85;
+}
+
+/* =========================================
+   TITLE
+========================================= */
+
+.title{
+    z-index:10;
+}
+
+.title h1{
+    font-size:clamp(3rem,8vw,7rem);
+    font-weight:900;
+    line-height:1;
+    letter-spacing:10px;
+
+    opacity:0; /* controlled by animations.js */
+
+    text-shadow:
+        0 0 10px rgba(255,255,255,.4),
+        0 0 20px rgba(255,255,255,.2);
+
+    will-change: transform, opacity;
+}
+
+/* =========================================
+   SHOE WRAPPER
+========================================= */
+
+.shoe-wrapper{
+    position:relative;
+    margin-top:40px;
+    margin-bottom:60px;
+}
+
+/* =========================================
+   SHOE (HIDDEN UNTIL ANIMATION)
+========================================= */
+
+.shoe{
+    width:320px;
+    height:auto;
+    opacity:0;
+
+    transform:rotate(-5deg);
+
+    filter:drop-shadow(0 0 20px rgba(0,255,255,0.5));
+
+    animation:float 3s ease-in-out infinite;
+}
+
+/* =========================================
+   CREDIT
+========================================= */
+
+.credit-wrapper{
+    position:absolute;
+    bottom:120px;
+    width:100%;
+}
+
+#credit{
+    color:var(--gold);
+    text-align:center;
+    font-weight:700;
+    letter-spacing:3px;
+
+    opacity:0; /* revealed by animations.js */
+
+    text-shadow:
+        0 0 10px var(--gold),
+        0 0 20px var(--gold),
+        0 0 40px var(--gold);
+
+    will-change: transform, opacity;
+}
+
+/* =========================================
+   CTA BUTTONS
+========================================= */
+
+.cta{
+    position:absolute;
+    bottom:40px;
+
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+    justify-content:center;
+
+    opacity:0; /* revealed by animations.js */
+}
+
+.btn-primary,
+.btn-secondary{
+    padding:14px 30px;
+    border:none;
+    border-radius:40px;
+    font-weight:700;
+    cursor:pointer;
+    transition:.3s ease;
+}
+
+/* Primary button */
+
+.btn-primary{
+    background:var(--gold);
+    color:black;
+}
+
+.btn-primary:hover{
+    transform:translateY(-4px);
+    box-shadow:0 0 20px var(--gold);
+}
+
+/* Secondary button */
+
+.btn-secondary{
+    background:transparent;
+    color:white;
+    border:2px solid white;
+}
+
+.btn-secondary:hover{
+    background:white;
+    color:black;
+}
+
+/* =========================================
+   SCANNER SYSTEM
+========================================= */
+
+#scanner-layer{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+}
+
+.scanner-line{
+    position:absolute;
+    width:100%;
+    height:4px;
+    top:0;
+
+    background:var(--cyan);
+
+    box-shadow:
+        0 0 10px var(--cyan),
+        0 0 20px var(--cyan),
+        0 0 40px var(--cyan);
+}
+
+/* Scanner pulse */
+
+.scanner-pulse{
+    position:absolute;
+    width:200px;
+    height:200px;
+    border:2px solid rgba(0,255,255,.4);
+    border-radius:50%;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    animation:pulse 3s linear forwards;
+}
+
+@keyframes pulse{
+    from{
+        opacity:1;
+        transform:translate(-50%,-50%) scale(.2);
+    }
+    to{
+        opacity:0;
+        transform:translate(-50%,-50%) scale(4);
+    }
+}
+
+/* Scan particles */
+
+.scan-particle{
+    position:absolute;
+    width:4px;
+    height:4px;
+    background:cyan;
+    border-radius:50%;
+    box-shadow:0 0 10px cyan;
+    animation:particleFloat linear forwards;
+}
+
+@keyframes particleFloat{
+    from{
+        opacity:1;
+        transform:translateY(0);
+    }
+    to{
+        opacity:0;
+        transform:translateY(-100px);
+    }
+}
+
+/* =========================================
+   FLOAT ANIMATION
+========================================= */
+
+@keyframes float{
+    0%{
+        transform:translateY(0px) rotate(-5deg);
+    }
+    50%{
+        transform:translateY(-15px) rotate(-5deg);
+    }
+    100%{
+        transform:translateY(0px) rotate(-5deg);
+    }
+}
+
+/* =========================================
+   RESPONSIVE DESIGN
+========================================= */
+
+@media(max-width:768px){
+
+    .title h1{
+        font-size:3rem;
+        letter-spacing:4px;
+    }
+
+    .shoe{
+        width:220px;
+        height:90px;
+    }
+
+    .tagline{
+        font-size:.7rem;
+        letter-spacing:3px;
+    }
+
+    #credit{
+        font-size:.8rem;
+        padding:0 20px;
+    }
+
+    .cta{
+        flex-direction:column;
+        align-items:center;
+    }
+}
