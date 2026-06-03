@@ -1,162 +1,95 @@
 /* =========================================
-   CYMOR SHOE STORE
-   MAIN.JS (DIRECTOR FILE)
+   CYMOR SHOE STORE | CORE DIRECTOR
+   State-Managed Boot Sequence
 ========================================= */
 
-document.addEventListener("DOMContentLoaded", () => {
+const AppState = {
+    isReady: false,
+    version: "1.0.0"
+};
 
-    bootSequence();
-
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        await runBootSequence();
+        console.log(`%cCymor Systems v${AppState.version} Online`, "color: #00ff41; font-weight: bold;");
+    } catch (err) {
+        console.error("Boot sequence failed:", err);
+    }
 });
 
 /* =========================================
-   BOOT SEQUENCE (STARTUP FLOW)
+   BOOT ENGINE
 ========================================= */
 
-function bootSequence() {
+async function runBootSequence() {
+    const loader = createLoader();
+    document.body.appendChild(loader);
 
-    showLoadingEffect();
+    // Initial Loading Phase
+    await new Promise(resolve => setTimeout(resolve, 100));
+    loader.querySelector(".boot-progress").style.width = "100%";
+    
+    // Wait for the transition
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    
+    // Cleanup
+    loader.style.opacity = "0";
+    await new Promise(resolve => setTimeout(resolve, 600));
+    loader.remove();
 
-    setTimeout(() => {
-
-        startCoreSystems();
-
-    }, 1200);
-
-    setTimeout(() => {
-
-        unlockExperience();
-
-    }, 2500);
-
+    // Initialize UI
+    unlockExperience();
 }
 
-/* =========================================
-   LOADING EFFECT
-========================================= */
-
-function showLoadingEffect() {
-
-    const body = document.body;
-
-    const loader = document.createElement("div");
-
-    loader.id = "boot-loader";
-
-    loader.innerHTML = `
-        <div class="boot-text">
-            INITIALIZING CYMOR SYSTEMS...
-        </div>
-        <div class="boot-bar">
-            <div class="boot-progress"></div>
-        </div>
+function createLoader() {
+    const div = document.createElement("div");
+    div.id = "boot-loader";
+    div.innerHTML = `
+        <div class="boot-text">INITIALIZING CYMOR SYSTEMS...</div>
+        <div class="boot-bar"><div class="boot-progress"></div></div>
     `;
-
-    body.appendChild(loader);
-
-    // Animate progress bar
-    setTimeout(() => {
-
-        const progress =
-            document.querySelector(".boot-progress");
-
-        if (progress) {
-            progress.style.width = "100%";
-        }
-
-    }, 500);
-
-    // Remove loader
-    setTimeout(() => {
-
-        loader.style.opacity = "0";
-
-        setTimeout(() => {
-            loader.remove();
-        }, 600);
-
-    }, 1200);
-
+    return div;
 }
 
 /* =========================================
-   START CORE SYSTEMS
-========================================= */
-
-function startCoreSystems() {
-
-    console.log("CYMOR SYSTEMS ONLINE");
-
-    // scanner starts
-    if (typeof initializeScanner === "function") {
-        initializeScanner();
-    }
-
-}
-
-/* =========================================
-   UNLOCK EXPERIENCE
+   SYSTEM LIFECYCLE
 ========================================= */
 
 function unlockExperience() {
-
+    AppState.isReady = true;
     document.body.classList.add("active");
-
+    
+    // Initialize external animation scripts if available
+    if (typeof startLandingAnimation === "function") startLandingAnimation();
     triggerAmbientEffects();
-
 }
-
-/* =========================================
-   AMBIENT EFFECTS
-========================================= */
 
 function triggerAmbientEffects() {
-
-    // subtle background pulse
+    // Uses CSS variables for performance
     setInterval(() => {
-
-        document.body.style.filter =
-            "brightness(1.05) contrast(1.05)";
-
+        document.documentElement.style.setProperty('--body-filter', 'brightness(1.05) contrast(1.05)');
         setTimeout(() => {
-
-            document.body.style.filter =
-                "brightness(1) contrast(1)";
-
+            document.documentElement.style.setProperty('--body-filter', 'brightness(1) contrast(1)');
         }, 400);
-
     }, 4000);
-
 }
 
 /* =========================================
-   FUTURE READY: PAGE SWITCH
+   NAVIGATION HANDLER
 ========================================= */
 
-function goToStore() {
-
-    // later this will load actual shop page
-
-    document.body.style.transition = "1s ease";
-
-    document.body.style.opacity = "0";
-
-    setTimeout(() => {
-
-        window.location.href = "store.html";
-
-    }, 1000);
-
+async function goToStore(url = "store.html") {
+    const body = document.body;
+    body.style.transition = "opacity 0.8s ease";
+    body.style.opacity = "0";
+    
+    await new Promise(resolve => setTimeout(resolve, 800));
+    window.location.href = url;
 }
 
-/* =========================================
-   BUTTON HOOK (OPTIONAL)
-========================================= */
-
+// Global Event Delegation (Cleaner than individual listeners)
 document.addEventListener("click", (e) => {
-
-    if (e.target.classList.contains("btn-primary")) {
+    if (e.target.matches(".btn-primary")) {
         goToStore();
     }
-
 });
