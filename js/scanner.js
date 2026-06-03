@@ -1,178 +1,86 @@
 /* =========================================
-   CYMOR SHOE STORE
-   SCANNER.JS
+   CYMOR SHOE STORE | SCANNER ENGINE
+   High-Performance Physics & Rendering
 ========================================= */
 
-document.addEventListener("DOMContentLoaded", () => {
-
-    initializeScanner();
-
-});
-
-/* =========================================
-   INITIALIZE
-========================================= */
+const Engine = {
+    particles: [],
+    frame: 0,
+    scannerPosition: 0,
+    scannerDirection: 1
+};
 
 function initializeScanner() {
+    const scannerLayer = document.getElementById("scanner-layer");
+    if (!scannerLayer) return;
 
-    animateScannerLine();
-
-    createScannerPulse();
-
-    generateParticles();
-
+    // Start the animation loop
+    requestAnimationFrame(render);
 }
 
 /* =========================================
-   SCANNER LINE MOVEMENT
+   CORE RENDER LOOP (60FPS)
 ========================================= */
+function render() {
+    Engine.frame++;
 
-function animateScannerLine() {
-
-    const scannerLine =
-        document.querySelector(".scanner-line");
-
-    if (!scannerLine) return;
-
-    let position = 0;
-    let direction = 1;
-
-    function move() {
-
-        position += direction * 2;
-
-        if (position >= window.innerHeight) {
-            direction = -1;
+    // 1. Update Scanner Line
+    const line = document.querySelector(".scanner-line");
+    if (line) {
+        Engine.scannerPosition += Engine.scannerDirection * 3;
+        if (Engine.scannerPosition >= window.innerHeight || Engine.scannerPosition <= 0) {
+            Engine.scannerDirection *= -1;
         }
-
-        if (position <= 0) {
-            direction = 1;
-        }
-
-        scannerLine.style.top =
-            position + "px";
-
-        requestAnimationFrame(move);
-
+        line.style.transform = `translateY(${Engine.scannerPosition}px)`;
     }
 
-    move();
+    // 2. Efficient Particle Generation (throttle to every 10th frame)
+    if (Engine.frame % 10 === 0) {
+        spawnParticle();
+    }
 
+    // 3. Shoe Glow Effect (Oscillates every 120 frames ~ 2 seconds)
+    if (Engine.frame % 120 === 0) {
+        pulseShoeGlow();
+    }
+
+    requestAnimationFrame(render);
 }
 
 /* =========================================
-   SCANNER PULSE
+   PARTICLE SYSTEM (Optimized)
 ========================================= */
-
-function createScannerPulse() {
-
-    const scannerLayer =
-        document.getElementById("scanner-layer");
-
-    if (!scannerLayer) return;
-
-    setInterval(() => {
-
-        const pulse =
-            document.createElement("div");
-
-        pulse.classList.add("scanner-pulse");
-
-        scannerLayer.appendChild(pulse);
-
-        setTimeout(() => {
-
-            pulse.remove();
-
-        }, 3000);
-
-    }, 2500);
-
+function spawnParticle() {
+    const layer = document.getElementById("scanner-layer");
+    const p = document.createElement("div");
+    p.classList.add("scan-particle");
+    
+    // Random positioning
+    p.style.left = `${Math.random() * 100}vw`;
+    p.style.top = `${Math.random() * 100}vh`;
+    
+    layer.appendChild(p);
+    
+    // Auto-clean after animation
+    p.addEventListener('animationend', () => p.remove(), { once: true });
 }
 
 /* =========================================
-   PARTICLES
+   GLOW EFFECTS
 ========================================= */
-
-function generateParticles() {
-
-    const scannerLayer =
-        document.getElementById("scanner-layer");
-
-    if (!scannerLayer) return;
-
-    setInterval(() => {
-
-        const particle =
-            document.createElement("div");
-
-        particle.classList.add("scan-particle");
-
-        particle.style.left =
-            Math.random() * window.innerWidth + "px";
-
-        particle.style.top =
-            Math.random() * window.innerHeight + "px";
-
-        particle.style.animationDuration =
-            (2 + Math.random() * 3) + "s";
-
-        scannerLayer.appendChild(particle);
-
-        setTimeout(() => {
-
-            particle.remove();
-
-        }, 5000);
-
-    }, 200);
-
-}
-
-/* =========================================
-   SHOE GLOW BOOST
-========================================= */
-
-setInterval(() => {
-
-    const shoe =
-        document.querySelector(".shoe");
-
+function pulseShoeGlow() {
+    const shoe = document.querySelector(".shoe");
     if (!shoe) return;
 
-    shoe.style.boxShadow =
-        `
-        0 0 30px rgba(0,255,255,0.5),
-        0 0 60px rgba(0,255,255,0.4),
-        0 0 100px rgba(0,255,255,0.3)
-        `;
-
+    shoe.style.transition = "box-shadow 0.6s ease-in-out";
+    shoe.style.boxShadow = "0 0 40px #0ff, 0 0 80px #0ff";
+    
     setTimeout(() => {
-
-        shoe.style.boxShadow =
-            `
-            0 0 30px rgba(255,255,255,0.3),
-            0 0 60px rgba(255,255,255,0.15)
-            `;
-
+        shoe.style.boxShadow = "0 0 15px rgba(255,255,255,0.2)";
     }, 600);
+}
 
-}, 4000);
-
-/* =========================================
-   WINDOW RESIZE
-========================================= */
-
+// Global Resize Listener
 window.addEventListener("resize", () => {
-
-    const scannerLine =
-        document.querySelector(".scanner-line");
-
-    if (scannerLine) {
-
-        scannerLine.style.width =
-            window.innerWidth + "px";
-
-    }
-
+    // CSS handles most responsive layouts; only re-calc if necessary
 });
