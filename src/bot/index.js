@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import makeWASocket, {
   DisconnectReason,
   fetchLatestBaileysVersion,
@@ -17,21 +16,9 @@ let pairingRequested = false;
 const PAIRING_PHONE = process.env.PAIRING_PHONE || '';
 
 /**
- * 🔥 MAIN BOT START
+ * 🚀 MAIN BOT START
  */
 export async function startBot() {
-  try {
-    console.log('🧹 Clearing old WhatsApp sessions...');
-
-    await mongoose.connection
-      .collection('authstates')
-      .deleteMany({});
-
-    console.log('🗑️ Old WhatsApp sessions removed');
-  } catch (err) {
-    console.log('⚠️ Could not clear authstates:', err.message);
-  }
-
   const { state, saveCreds } = await useMongoDBAuthState();
   const { version } = await fetchLatestBaileysVersion();
 
@@ -53,7 +40,6 @@ export async function startBot() {
     },
 
     logger: pino({ level: 'silent' }),
-
     printQRInTerminal: false,
 
     browser: ['Ubuntu', 'Chrome', '122.0.0.0'],
@@ -63,18 +49,12 @@ export async function startBot() {
   });
 
   /**
-   * Save credentials
+   * 💾 Save credentials safely
    */
-  sock.ev.on('creds.update', async () => {
-    try {
-      await saveCreds();
-    } catch (err) {
-      console.error('❌ Failed saving credentials:', err);
-    }
-  });
+  sock.ev.on('creds.update', saveCreds);
 
   /**
-   * Pairing Code Request
+   * 🔐 Pairing code (ONLY if needed)
    */
   if (!state.creds.registered && PAIRING_PHONE && !pairingRequested) {
     pairingRequested = true;
@@ -94,24 +74,24 @@ export async function startBot() {
         console.log('================================');
         console.log(formatted);
         console.log('================================');
-        console.log('Go to: WhatsApp > Linked Devices');
+        console.log('Go to WhatsApp > Linked Devices');
         console.log('================================\n');
 
       } catch (err) {
         console.error('❌ Pairing code error:', err.message);
         pairingRequested = false;
       }
-    }, 15000);
+    }, 12000);
   }
 
   /**
-   * Connection Handler
+   * 📡 Connection handling
    */
-  sock.ev.on('connection.update', async ({ connection, lastDisconnect }) => {
+  sock.ev.on('connection.update', ({ connection, lastDisconnect }) => {
     console.log('📡 Connection State:', connection);
 
     if (connection === 'open') {
-      console.log('🟢 WhatsApp Connected — session stored in MongoDB');
+      console.log('🟢 WhatsApp Connected');
       pairingRequested = true;
     }
 
@@ -129,15 +109,15 @@ export async function startBot() {
         setTimeout(() => {
           startBot().catch(console.error);
         }, 5000);
-
       } else {
-        console.log('🚪 Logged Out - Re-pair required');
+        console.log('🚪 Logged out — manual re-pair required');
+        pairingRequested = false;
       }
     }
   });
 
   /**
-   * Message Handler
+   * 💬 Message handler
    */
   sock.ev.on('messages.upsert', async ({ messages, type }) => {
     if (type !== 'notify') return;
@@ -161,7 +141,7 @@ export async function startBot() {
 }
 
 /**
- * 📩 Send Text Message
+ * 📩 Send text
  */
 export async function sendMessage(phone, text) {
   if (!sock) return;
@@ -178,7 +158,7 @@ export async function sendMessage(phone, text) {
 }
 
 /**
- * 🖼️ Send Image Message
+ * 🖼️ Send image
  */
 export async function sendImageMessage(phone, imageUrl, caption = '') {
   if (!sock) return;
@@ -203,7 +183,7 @@ export async function sendImageMessage(phone, imageUrl, caption = '') {
 }
 
 /**
- * Get socket instance
+ * 🔌 Get socket
  */
 export function getSock() {
   return sock;
