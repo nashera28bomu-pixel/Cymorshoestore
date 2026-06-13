@@ -7,8 +7,14 @@ proto
 
 const authSchema = new mongoose.Schema(
 {
-_id: String,
-value: mongoose.Schema.Types.Mixed
+_id: {
+type: String,
+required: true
+},
+value: {
+type: mongoose.Schema.Types.Mixed,
+required: true
+}
 },
 {
 versionKey: false
@@ -21,45 +27,77 @@ mongoose.model('AuthState', authSchema);
 
 export async function useMongoDBAuthState() {
 const readData = async (id) => {
+try {
 const doc = await AuthState.findById(id).lean();
 
-if (!doc) {
+  if (!doc) {
+    return null;
+  }
+
+  return JSON.parse(
+    JSON.stringify(doc.value),
+    BufferJSON.reviver
+  );
+} catch (error) {
+  console.error(
+    `❌ Failed reading auth key: ${id}`,
+    error.message
+  );
   return null;
 }
-
-return JSON.parse(
-  JSON.stringify(doc.value),
-  BufferJSON.reviver
-);
 
 };
 
 const writeData = async (id, value) => {
+try {
 const serialized = JSON.parse(
-JSON.stringify(value, BufferJSON.replacer)
+JSON.stringify(
+value,
+BufferJSON.replacer
+)
 );
 
-await AuthState.findOneAndUpdate(
-  { _id: id },
-  {
-    _id: id,
-    value: serialized
-  },
-  {
-    upsert: true,
-    new: true
-  }
-);
+  await AuthState.findOneAndUpdate(
+    { _id: id },
+    {
+      _id: id,
+      value: serialized
+    },
+    {
+      upsert: true,
+      new: true
+    }
+  );
+} catch (error) {
+  console.error(
+    `❌ Failed writing auth key: ${id}`,
+    error.message
+  );
+}
 
 };
 
 const removeData = async (id) => {
-await AuthState.deleteOne({ _id: id });
+try {
+await AuthState.deleteOne({
+_id: id
+});
+} catch (error) {
+console.error(
+"❌ Failed deleting auth key: ${id}",
+error.message
+);
+}
 };
 
 const creds =
 (await readData('creds')) ||
 initAuthCreds();
+
+console.log(
+'📦 Auth State Loaded:',
+creds?.registered || false
+);
 
 const state = {
 creds,
@@ -117,10 +155,22 @@ keys: {
 };
 
 const saveCreds = async () => {
+try {
 await writeData(
 'creds',
 state.creds
 );
+
+  console.log(
+    '💾 WhatsApp credentials saved'
+  );
+} catch (error) {
+  console.error(
+    '❌ Failed saving credentials',
+    error.message
+  );
+}
+
 };
 
 return {
