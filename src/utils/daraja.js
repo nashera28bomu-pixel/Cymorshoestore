@@ -4,8 +4,8 @@ const DARAJA_BASE = process.env.MPESA_ENV === 'production'
   ? 'https://api.safaricom.co.ke'
   : 'https://sandbox.safaricom.co.ke';
 
-// Import your callback handler so we can call it in sandbox
-import { handleMpesaCallback } from './mpesaCallback.js'; // adjust path if different
+// Import callback handler from your routes folder
+import { handleMpesaCallback } from '../routes/mpesa.js';
 
 async function getAccessToken() {
   const credentials = Buffer.from(
@@ -56,8 +56,6 @@ export async function initiateSTKPush(phone, amount, orderId) {
 
   const password = Buffer.from(`${shortcode}${passkey}${timestamp}`).toString('base64');
   const normalizedPhone = normalizePhone(phone);
-
-  // Sandbox only accepts the official Safaricom test number
   const stkPhone = !isProduction
     ? (process.env.MPESA_TEST_PHONE || '254708374149')
     : normalizedPhone;
@@ -113,7 +111,7 @@ export async function initiateSTKPush(phone, amount, orderId) {
         };
         console.log('SANDBOX: Auto-triggering callback for order', orderId);
         handleMpesaCallback(fakeCallback);
-      }, 3000); // 3 sec delay to mimic real user entering PIN
+      }, 3000);
     }
 
     return res.data;
