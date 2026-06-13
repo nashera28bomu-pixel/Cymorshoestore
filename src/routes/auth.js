@@ -1,13 +1,20 @@
+import express from 'express';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
-export function authMiddleware(req, res, next) {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+const router = express.Router();
 
-  try {
-    req.admin = jwt.verify(token, process.env.JWT_SECRET);
-    next();
-  } catch {
-    res.status(401).json({ error: 'Invalid or expired token' });
-  }
-}
+router.post('/login', async (req, res) => {
+  const { password } = req.body;
+  if (!password) return res.status(400).json({ error: 'Password required' });
+
+  const valid = password === process.env.ADMIN_PASSWORD ||
+    await bcrypt.compare(password, process.env.ADMIN_PASSWORD || '');
+
+  if (!valid) return res.status(401).json({ error: 'Invalid password' });
+
+  const token = jwt.sign({ admin: true }, process.env.JWT_SECRET, { expiresIn: '24h' });
+  res.json({ token });
+});
+
+export default router;
