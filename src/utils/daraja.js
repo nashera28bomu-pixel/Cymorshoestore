@@ -4,6 +4,9 @@ const DARAJA_BASE = process.env.MPESA_ENV === 'production'
   ? 'https://api.safaricom.co.ke'
   : 'https://sandbox.safaricom.co.ke';
 
+// Import your callback handler so we can call it in sandbox
+import { handleMpesaCallback } from './mpesaCallback.js'; // adjust path if different
+
 async function getAccessToken() {
   const credentials = Buffer.from(
     `${process.env.MPESA_CONSUMER_KEY}:${process.env.MPESA_CONSUMER_SECRET}`
@@ -45,6 +48,7 @@ export async function initiateSTKPush(phone, amount, orderId) {
   const timestamp = getTimestamp();
   const shortcode = process.env.MPESA_SHORTCODE;
   const passkey = process.env.MPESA_PASSKEY;
+  const isProduction = process.env.MPESA_ENV === 'production';
 
   if (!shortcode || !passkey) {
     throw new Error('MPESA_SHORTCODE or MPESA_PASSKEY missing from environment');
@@ -53,10 +57,9 @@ export async function initiateSTKPush(phone, amount, orderId) {
   const password = Buffer.from(`${shortcode}${passkey}${timestamp}`).toString('base64');
   const normalizedPhone = normalizePhone(phone);
 
-  // Sandbox only accepts the official Safaricom test number for STK push
-  // Use it when testing so the prompt actually fires
-  const stkPhone = process.env.MPESA_ENV !== 'production'
-    ? (process.env.MPESA_TEST_PHONE || normalizedPhone)
+  // Sandbox only accepts the official Safaricom test number
+  const stkPhone = !isProduction
+    ? (process.env.MPESA_TEST_PHONE || '254708374149')
     : normalizedPhone;
 
   const payload = {
@@ -87,6 +90,32 @@ export async function initiateSTKPush(phone, amount, orderId) {
       }
     );
     console.log('STK Push response:', JSON.stringify(res.data));
+
+    // AUTO-CONFIRM IN SANDBOX MODE
+    if (!isProduction && res.data.CheckoutRequestID) {
+      setTimeout(() => {
+        const fakeCallback = {
+          Body: {
+            stkCallback: {
+              MerchantRequestID: res.data.MerchantRequestID,
+              CheckoutRequestID: res.data.CheckoutRequestID,
+              ResultCode: 0,
+              ResultDesc: 'Success - Sandbox Auto Confirm',
+              CallbackMetadata: {
+                Item: [
+                  { Name: 'Amount', Value: Math.ceil(amount) },
+                  { Name: 'MpesaReceiptNumber', Value: `TEST${Date.now()}` },
+                  { Name: 'PhoneNumber', Value: parseInt(stkPhone) }
+                ]
+              }
+            }
+          }
+        };
+        console.log('SANDBOX: Auto-triggering callback for order', orderId);
+        handleMpesaCallback(fakeCallback);
+      }, 3000); // 3 sec delay to mimic real user entering PIN
+    }
+
     return res.data;
   } catch (err) {
     const detail = err.response?.data || err.message;
